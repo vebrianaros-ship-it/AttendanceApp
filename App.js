@@ -8,6 +8,9 @@ import HomeScreen from './pages/HomeScreen';
 import HistoryScreen from './pages/HistoryScreen';
 import DetailScreen from './pages/DetailScreen';
 
+// ✅ TAMBAHAN: import AuthProvider (WAJIB untuk Context)
+import { AuthProvider } from './context/AuthContext';
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
@@ -34,28 +37,41 @@ function HistoryStack() {
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Tab.Navigator screenOptions={{ tabBarActiveTintColor: '#0056A0', headerShown: false }}>
-
-        <Tab.Screen
-          name="HomeTab"
-          component={HomeScreen}
-          options={{
-            tabBarLabel: 'Beranda',
-            tabBarIcon: ({ color }) => <MaterialIcons name="home" size={24} color={color} />
+    // ✅ TAMBAHAN: Bungkus seluruh app dengan AuthProvider
+    // ❗ INI YANG SEBELUMNYA BELUM ADA → menyebabkan error useContext undefined
+    <AuthProvider>
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={{
+            tabBarActiveTintColor: '#0056A0',
+            headerShown: false
           }}
-        />
+        >
 
-        <Tab.Screen
-          name="HistoryTab"
-          component={HistoryStack}
-          options={{
-            tabBarLabel: 'Riwayat',
-            tabBarIcon: ({ color }) => <MaterialIcons name="history" size={24} color={color} />
-          }}
-        />
+          <Tab.Screen
+            name="HomeTab"
+            component={HomeScreen}
+            options={{
+              tabBarLabel: 'Beranda',
+              tabBarIcon: ({ color }) => (
+                <MaterialIcons name="home" size={24} color={color} />
+              )
+            }}
+          />
 
-      </Tab.Navigator>
-    </NavigationContainer>
+          <Tab.Screen
+            name="HistoryTab"
+            component={HistoryStack}
+            options={{
+              tabBarLabel: 'Riwayat',
+              tabBarIcon: ({ color }) => (
+                <MaterialIcons name="history" size={24} color={color} />
+              )
+            }}
+          />
+
+        </Tab.Navigator>
+      </NavigationContainer>
+    </AuthProvider> // ✅ PENUTUP AuthProvider
   );
 }
