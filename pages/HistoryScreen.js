@@ -17,11 +17,9 @@ export default function HistoryScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Pagination State
   const [page, setPage] = useState(0);
   const [isLastPage, setIsLastPage] = useState(false);
 
-  // FUNGSI GET API DENGAN PAGINATION
   const fetchAttendanceData = async (targetPage = 0) => {
     if (isLoading || (isLastPage && targetPage !== 0)) return;
 
