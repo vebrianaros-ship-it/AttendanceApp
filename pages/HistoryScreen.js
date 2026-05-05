@@ -2,10 +2,13 @@ import React, { useState, useCallback, useContext } from "react";
 import {
   View, Text, SafeAreaView, StyleSheet, FlatList,
   TouchableOpacity, ActivityIndicator
-} from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
-import { AuthContext } from "../context/AuthContext";
+} from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import { AuthContext } from '../context/AuthContext';
+
+const BASE_URL = "http://10.1.15.171:8080/api/presensi";
+const AUTH_CODE = "astratech@123";
 
 export default function HistoryScreen({ navigation }) {
   const { userData } = useContext(AuthContext);
@@ -18,9 +21,6 @@ export default function HistoryScreen({ navigation }) {
   const [page, setPage] = useState(0);
   const [isLastPage, setIsLastPage] = useState(false);
 
-  // GANTI DENGAN IP LAPTOP MASING-MASING
-  const BASE_URL = "http://10.1.15.171:8080/api/presensi";
-
   // FUNGSI GET API DENGAN PAGINATION
   const fetchAttendanceData = async (targetPage = 0) => {
     if (isLoading || (isLastPage && targetPage !== 0)) return;
@@ -28,21 +28,28 @@ export default function HistoryScreen({ navigation }) {
     setIsLoading(true);
 
     try {
-      // Memanggil API Spring Boot
-      const response = await fetch(`${BASE_URL}/history/${userData.nim_mhs}?page=${targetPage}&size=10`);
+      
+      const response = await fetch(
+        `${BASE_URL}/history/${userData?.mhsNim}?page=${targetPage}&size=10`,
+        {
+          headers: {
+            'authcode': AUTH_CODE
+          }
+        }
+      );
       const json = await response.json();
 
-      // Spring Boot Pageable menyimpan array di dalam properti 'content'
+      
       const newItems = json.content;
 
       if (targetPage === 0) {
-        setHistoryData(newItems); // Refresh halaman awal
+        setHistoryData(newItems);
       } else {
-        setHistoryData(prev => [...prev, ...newItems]); // Append (Load More)
+        setHistoryData(prev => [...prev, ...newItems]);
       }
 
       setPage(targetPage);
-      setIsLastPage(json.last); // 'last' adalah boolean dari Spring Boot
+      setIsLastPage(json.last);
 
     } catch (error) {
       console.error("Gagal tarik data:", error);
@@ -52,11 +59,12 @@ export default function HistoryScreen({ navigation }) {
     }
   };
 
-  // Otomatis refresh saat layar dibuka
   useFocusEffect(
     useCallback(() => {
-      fetchAttendanceData(0);
-    }, [])
+      if (userData?.mhsNim) {
+        fetchAttendanceData(0);
+      }
+    }, [userData?.mhsNim])
   );
 
   const onRefresh = () => {
@@ -117,60 +125,34 @@ export default function HistoryScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { 
-        flex: 1, 
-        backgroundColor: "#F5F5F5" 
-    },
-    
-    content: { 
-        padding: 20 
-    },
-    
-    item: { 
-        flexDirection: "row", 
-        alignItems: "center", 
-        backgroundColor: "white",
-        padding: 15, 
-        borderRadius: 8, 
-        marginBottom: 10, 
-        elevation: 2 
-    },
-    
-    course: { 
-        fontSize: 16, 
-        fontWeight: "bold", 
-        color: "#333" 
-    },
-
-    date: { 
-        fontSize: 12, 
-        color: "gray", 
-        marginTop: 4 
-    },
-    present: { 
-        color: "green", 
-        fontWeight: "bold", 
-        marginRight: 5 
-    },
-    absent: { 
-        color: "red", 
-        fontWeight: "bold", 
-        marginRight: 5 
-    },
-    footerLoader: { 
-        paddingVertical: 20, 
-        alignItems: 'center', 
-        flexDirection: 'row', 
-        justifyContent: 'center' 
-    },
-    loaderText: { 
-        marginLeft: 10, 
-        color: '#666', 
-        fontSize: 12 
-    },
-    emptyText: { 
-        textAlign: 'center', 
-        marginTop: 50, 
-        color: '#999' 
-    }
+  container: { flex: 1, backgroundColor: "#F5F5F5" },
+  content: { padding: 20 },
+  item: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
+    elevation: 2
+  },
+  course: { fontSize: 16, fontWeight: "bold", color: "#333" },
+  date: { fontSize: 12, color: "gray", marginTop: 4 },
+  present: { color: "green", fontWeight: "bold" },
+  absent: { color: "red", fontWeight: "bold" },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: "center",
+  },
+  loaderText: {
+    marginTop: 8,
+    color: "#666",
+    fontSize: 12,
+  },
+  emptyText: {
+    textAlign: "center",
+    marginTop: 50,
+    color: "#999",
+    fontSize: 16,
+  }
 });
